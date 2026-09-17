@@ -23,7 +23,8 @@ Concept: [`docs/02_CONCEPT.md`](docs/02_CONCEPT.md) (draft v2). Market analysis:
 |---|---|
 | Alpha v0.2 analysis | done |
 | Market and technology analysis | v1 — four sourced research buckets + synthesis |
-| Concept | draft v2 — block progression as foundation, one instance = the band |
+| Concept | draft v2 — block progression as foundation, one instance = the band, playable state = parameters (measured) |
+| Persistence probe | done — `tests/persistence_probe`, results in `docs/03_PLATFORM_NOTES.md` §6 |
 | DSP implementation | not started — follows the concept |
 | UI implementation | not started — follows the concept |
 

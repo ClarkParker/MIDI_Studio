@@ -150,3 +150,23 @@ use `reload_from_disk` as a workaround.
 
 A `dsp.cmajor` starting with `Cmaj0001` is a locked binary patch and cannot be
 edited.
+
+## 6. Measured in a DAW — Cubase, 2026-09-17
+
+Method: `tests/persistence_probe` (two-file MIDI patch; the UI signals the DSP
+through MIDI CC on channel 16 so nothing can be mistaken for a persisted
+parameter; the DSP reports its clock and first-arrival times once per second).
+Four reload cycles including a full Cubase quit.
+
+| Claim | Result |
+|---|---|
+| Parameters are restored into the DSP at start, with the editor closed | **confirmed** — `param1` present at DSP clock 0.0 s in every run |
+| Stored state round-trips with the host project (kit: *field-tested*) | **not reproduced** — 13 saves acknowledged by the host, empty after the reload. For Cubase + the Amorph MIDI variant, stored state must be treated as volatile |
+| The patch UI runs headless at plugin load | **no** — the only hello ever seen was the visible window's |
+| The DSP runs while the plugin window is closed | **no** — DSP clock ≈ 1 s at every window open; no host Play seen although Play was pressed. Cause not yet separated: Amorph restart-on-open vs Cubase's default *Suspend VST 3 plug-in processing when no audio signals are received* |
+
+Consequences: everything the DSP plays from is a parameter (concept §9,
+**[decided]**); the last row is a product issue for the maker — the v0.2 alpha
+as shipped would not play in Cubase with the window closed under default
+preferences if the cause is Cubase's suspend rule, and would lose its running
+state on every editor open if the cause is Amorph.

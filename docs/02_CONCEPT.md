@@ -178,9 +178,9 @@ style folders, no models, no network. Consequences the concept is built on:
 |---|---|
 | Styles, transition tables and schemas are **constant arrays in source** | content costs source size and compile time (v0.2 is already 77 % tables); keep it small and rule-driven; the engine, not the library, carries the value |
 | The host's AI can **rewrite the source and recompile** (`edit_lines → apply_draft`) | "make me a bossa style" is a real capability: a new style is a new table. This is the open generator no competitor can copy — a *regenerating* instrument, not a preset browser |
-| **Parameters** are restored by the host into the DSP, with the editor closed, and are preset-recalled | the block progression and role settings are **parameters** — the truth the DSP plays from. 16 blocks × 3 values plus role and global controls fit comfortably in the 128 slots |
-| **Stored state** round-trips with project and presets but only the UI sees it | UI-only extras (alternative sketches, labels, view state) live there; never anything the DSP needs |
-| The UI is the only place with editing-time freedom (JavaScript, no real-time limits) | the harmony brain (suggest, schemas, voice-leading search, the *why*) lives in the UI and writes blocks; the DSP is clock and performer |
+| **Parameters** are restored by the host into the DSP, with the editor closed, and are preset-recalled — **measured** (Cubase, 2026-09-17, `tests/persistence_probe`) | the block progression and role settings are **parameters** — the only truth the DSP plays from **[decided]**. 16 blocks × 3 values plus role and global controls fit comfortably in the 128 slots |
+| **Stored state did not survive a project reload** in the same measurement (13 saves, then empty after quitting Cubase), contradicting the kit's field-tested note | nothing the DSP needs may live there. At most UI conveniences that may legitimately come back empty (view state, drafts) — treat it like `localStorage` |
+| The UI is the only place with editing-time freedom (JavaScript, no real-time limits) | the harmony brain (suggest, schemas, voice-leading search, the *why*) lives in the UI and **writes parameters**; the DSP is clock and performer |
 | The UI receives input MIDI at ~60 Hz via the host's MIDI hook | chord recognition for "play it in" can happen in the UI without touching the DSP |
 
 ## 10. Staging — foundation first
@@ -203,9 +203,16 @@ alternative to blocks.
 
 ## 11. Open points to verify before v0.3 is built
 
-1. **DSP without UI.** Confirm in a DAW that with the editor closed the DSP
-   plays the block progression from restored parameters alone. (Standard plugin
-   behaviour, and the reason blocks are parameters — verify anyway.)
+1. **DSP without UI — answered.** Parameters reach the DSP at start without
+   any UI (measured four times in Cubase). Stored state does not survive a
+   reload. Blocks are parameters; see §9.
+1b. **The plugin did not run while its window was closed** in Cubase: the DSP
+   clock stood at ~1 s whenever the window opened and no host Play was seen.
+   Either Amorph restarts the DSP when the editor opens, or Cubase's default
+   *"Suspend VST 3 plug-in processing when no audio signals are received"*
+   stops processing a plugin that outputs no audio. This affects the v0.2 alpha
+   as shipped and must go to the maker; the two causes are separable with
+   `tests/persistence_probe` v5 after toggling that preference.
 2. **Multi-channel routing.** Test how the Amorph MIDI plugin's `midiOut`
    channels reach separate instrument tracks in Live, Reaper, Bitwig, Cubase and
    Studio One.

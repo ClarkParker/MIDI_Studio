@@ -49,3 +49,20 @@ back empty after that, the probe says "stored state LOST" explicitly.
   pitch, channel 2 at `36 + blob` once a blob arrived.
 
 `Reset test` clears the history and starts over.
+
+## Result (Cubase, 2026-09-17)
+
+Decision taken on this evidence: **the block progression and everything else
+the DSP plays from are parameters.**
+
+- Parameters restore into the DSP at start without a UI — confirmed in every run.
+- Stored state came back empty after a project reload (13 saves before) — not
+  usable for playable state.
+- No headless UI at load; the DSP clock was ~1 s at every window open and no
+  host Play was seen with the window closed. Whether Amorph restarts the DSP on
+  editor open or Cubase suspends a plugin without audio output is still to be
+  separated: turn off Cubase's *Suspend VST 3 plug-in processing when no audio
+  signals are received*, run the quick check (close 20 s, reopen) with this v5
+  UI, and read the box.
+
+The probe stays in the repo as a reproducible check for the maker.
