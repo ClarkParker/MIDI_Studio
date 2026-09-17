@@ -22,7 +22,8 @@ Concept: [`docs/02_CONCEPT.md`](docs/02_CONCEPT.md) (draft v1, under discussion)
 | Stage | State |
 |---|---|
 | Alpha v0.2 analysis | done |
-| Concept | draft v1 — under discussion |
+| Market and technology analysis | v1 — four sourced research buckets + synthesis |
+| Concept | draft v1 — to be revised against the market analysis |
 | DSP implementation | not started — follows the concept |
 | UI implementation | not started — follows the concept |
 
@@ -39,6 +40,8 @@ docs/
   01_ALPHA_ANALYSIS.md       what v0.2 actually does, measured
   02_CONCEPT.md              the concept — read this one
   03_PLATFORM_NOTES.md       Amorph/Cmajor constraints + v0.2 compliance findings
+  07_MARKET_ANALYSIS.md      what the market does, what we can adapt, where the gaps are
+  research/                  the four raw, sourced research buckets behind 07
   parked/                    an earlier Drift/Seed direction, kept for reference
 
 tools/
