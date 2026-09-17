@@ -4,6 +4,7 @@ processor PersistenceProbe [[ main ]]
 {
     input  event std::midi::Message midiIn;
     output event std::midi::Message midiOut;
+    input  event float transportIn;
 
     input event float param1 [[ name: "Param Note", min: 0, max: 127, init: 60, step: 1 ]];
 
@@ -15,6 +16,8 @@ processor PersistenceProbe [[ main ]]
     output event float blobValueOut;    // last blob value received (CC 119, channel 16; -1 = none)
     output event float blobTimeOut;     // uptime of the first blob (-1 = never)
     output event float blobCountOut;    // number of blob messages received
+    output event float playCountOut;    // number of host play starts seen
+    output event float playTimeOut;     // uptime of the first play start (-1 = never)
 
     int   paramNote = 60;
     float paramTime = -1.0f;
@@ -23,6 +26,10 @@ processor PersistenceProbe [[ main ]]
     int   blobValue = -1;
     float blobTime = -1.0f;
     int   blobCount = 0;
+    int   playCount = 0;
+    float playTime = -1.0f;
+    bool  hostPlaying = false;
+    int   transportSlot = 0;
 
     int64 sampleCount = 0;
     int   secondTick = 0;
@@ -37,6 +44,26 @@ processor PersistenceProbe [[ main ]]
         paramNote = clamp (int (v), 0, 127);
         if (paramTime < 0.0f && paramNote != 60)
             paramTime = uptimeSeconds();
+    }
+
+    // Six-slot host packet: play, bpm, numerator, denominator, ppq, barStart.
+    // Only the play flag matters here; the rest is rotated past.
+    event transportIn (float value)
+    {
+        if (value != value || abs (value) > 100000000.0f) { transportSlot = (transportSlot + 1) % 6; return; }
+
+        if (transportSlot == 0)
+        {
+            bool nextPlaying = value > 0.5f;
+            if (nextPlaying && ! hostPlaying)
+            {
+                playCount += 1;
+                if (playTime < 0.0f) playTime = uptimeSeconds();
+            }
+            hostPlaying = nextPlaying;
+        }
+
+        transportSlot = (transportSlot + 1) % 6;
     }
 
     // The UI talks to the DSP through injected MIDI on channel 16, because MIDI is
@@ -70,6 +97,8 @@ processor PersistenceProbe [[ main ]]
         blobValueOut  <- float (blobValue);
         blobTimeOut   <- blobTime;
         blobCountOut  <- float (blobCount);
+        playCountOut  <- float (playCount);
+        playTimeOut   <- playTime;
     }
 
     void main()
