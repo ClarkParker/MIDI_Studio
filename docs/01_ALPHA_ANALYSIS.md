@@ -115,8 +115,12 @@ another loop.
   → reset. You cannot play a chord into it, transpose it from a keyboard, or
   drive it from a clip. For a tool meant "for composing", this is the biggest
   single gap.
-- **No output path.** The user cannot capture what they like. Every good accident
-  is lost when the parameter moves.
+- **Nothing is addressable after the fact.** The MIDI output itself is not the
+  problem — it goes to the host like any MIDI generator's and can be armed and
+  recorded onto a track. What is missing is a *name* for what you just heard:
+  the plugin has no seed, no state to freeze, no way to say "keep that one". If
+  the user nudges a parameter, the previous result is not recoverable, because
+  nothing ever identified it.
 - **Drums ignore key/scale/octave** (correct), but the UI disables those controls
   by index (`v.param1===5`) — the special case is wired into both layers by hand.
 
