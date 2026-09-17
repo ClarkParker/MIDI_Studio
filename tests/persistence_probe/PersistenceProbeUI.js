@@ -49,13 +49,15 @@ class PersistenceProbeUI extends HTMLElement {
     pc.addAllParameterListener(this._onParam);
     this._onState = msg => {
       if (msg?.key !== 'testBlob') return;
-      const v = Number(msg.value);
+      const raw = msg.value;
+      const v = (raw === null || raw === undefined || raw === '') ? NaN : Number(raw);
       if (Number.isFinite(v)) { this.querySelector('[data-blob]').value = v; this._push(v, 'restored from stored state'); }
-      else this._line('stored state: testBlob is empty');
+      else this._line(`stored state: testBlob is EMPTY (raw=${JSON.stringify(raw)})`);
     };
     pc.addStoredStateValueListener(this._onState);
 
-    this._line(`UI connected (${new Date().toISOString()})`);
+    this._uiStart = new Date();
+    this._line(`UI connected (${this._uiStart.toISOString()})`);
     pc.sendMIDIInputEvent('midiIn', cc(118, 1));
     this._line('hello sent to DSP (CC118 ch16)');
     pc.requestParameterValue('param1');
@@ -80,6 +82,11 @@ class PersistenceProbeUI extends HTMLElement {
   _onDsp (f, v) {
     const prev = this._dsp[f];
     this._dsp[f] = v;
+    if (f === 'uptimeOut' && !this._dspStart) {
+      this._dspStart = new Date(Date.now() - v * 1000);
+      this._line(`DSP started at ${this._dspStart.toTimeString().slice(0, 8)} (uptime ${v.toFixed(1)} s when this UI connected)`);
+      if (v < 5) this._line('WARNING: DSP uptime < 5 s at UI connect. Either you opened the window right after loading, or the DSP restarts when the window opens. Wait 30 s by the clock before opening.');
+    }
     const isTime = f.endsWith('TimeOut');
     this._cells[f].textContent = f === 'uptimeOut' ? `${v.toFixed(1)} s` : isTime ? (v < 0 ? 'never' : `${v.toFixed(1)} s`) : String(v);
     if (f !== 'uptimeOut' && prev !== v) this._line(`DSP ${f} = ${isTime && v >= 0 ? v.toFixed(1) + ' s uptime' : v}`);
@@ -90,7 +97,11 @@ class PersistenceProbeUI extends HTMLElement {
     this._log.value += `[${ts}] ${t}\n`;
     this._log.scrollTop = this._log.scrollHeight;
   }
-  _summary () { return 'RESULT ' + FIELDS.map(f => `${f}=${this._dsp[f] ?? '?'}`).join(' ') + '\n'; }
+  _summary () {
+    const t = d => d ? d.toTimeString().slice(0, 8) : '?';
+    return 'RESULT ' + FIELDS.map(f => `${f}=${this._dsp[f] ?? '?'}`).join(' ')
+      + ` dspStartedAt=${t(this._dspStart)} uiConnectedAt=${t(this._uiStart)}\n`;
+  }
   _copy () {
     const text = this._summary() + this._log.value;
     if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(() => this._line('copied to clipboard'), () => this._select());
