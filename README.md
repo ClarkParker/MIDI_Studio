@@ -8,12 +8,12 @@ The maker shipped an alpha (v0.2) and asked the group one question:
 > "it has a few compositions and variations, but still feels too fixed. i'd like
 > it to become more useful for composing. what would change?"
 
-**Our answer, in one line:** the rhythm never moves — 32 of the 40 loops are one
-bar repeated four times — so the fix is not more compositions, it is a seeded
-performer stage that re-interprets the existing ones.
+**Our answer, in one line:** v0.2 is a disassembled band — ten roles that were
+authored as one arrangement but cannot hear each other or take direction. The
+direction is not more loops and not more randomness; it is **chord follow**: the
+parts play the chords the user gives them, so the output becomes the user's.
 
-Full reasoning: [`docs/02_CONCEPT.md`](docs/02_CONCEPT.md).
-Short version to send back to the maker: [`docs/06_REPLY_TO_MAKER.md`](docs/06_REPLY_TO_MAKER.md).
+Concept: [`docs/02_CONCEPT.md`](docs/02_CONCEPT.md) (draft v1, under discussion).
 
 ---
 
@@ -22,9 +22,9 @@ Short version to send back to the maker: [`docs/06_REPLY_TO_MAKER.md`](docs/06_R
 | Stage | State |
 |---|---|
 | Alpha v0.2 analysis | done |
-| Concept for v0.3 | done — awaiting the maker's direction |
-| DSP implementation | spec'd, not started |
-| UI implementation | spec'd, not started |
+| Concept | draft v1 — under discussion |
+| DSP implementation | not started — follows the concept |
+| UI implementation | not started — follows the concept |
 
 ## Repository layout
 
@@ -37,11 +37,9 @@ alpha/v0.2/                  the maker's alpha, as received
 
 docs/
   01_ALPHA_ANALYSIS.md       what v0.2 actually does, measured
-  02_CONCEPT.md              the proposal — read this one
+  02_CONCEPT.md              the concept — read this one
   03_PLATFORM_NOTES.md       Amorph/Cmajor constraints + v0.2 compliance findings
-  04_DSP_SPEC.md             handover spec for the DSP session
-  05_UI_SPEC.md              handover spec for the GUI session
-  06_REPLY_TO_MAKER.md       the short version, ready to post
+  parked/                    an earlier Drift/Seed direction, kept for reference
 
 tools/
   amorph_extract.py          pull DSP + UI source out of any .amorph file

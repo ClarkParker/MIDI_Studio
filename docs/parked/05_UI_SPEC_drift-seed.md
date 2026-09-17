@@ -1,7 +1,7 @@
 # v0.3 UI spec — Seed, Roll and the performance row
 
-Handover document for the GUI session. Read [`02_CONCEPT.md`](02_CONCEPT.md) and
-[`03_PLATFORM_NOTES.md`](03_PLATFORM_NOTES.md) first.
+Handover document for the GUI session. Read [`02_CONCEPT.md`](02_CONCEPT_drift-seed.md) and
+[`03_PLATFORM_NOTES.md`](../03_PLATFORM_NOTES.md) first.
 
 Working branch: `claude/quirky-allen-pq7tcw` in `ClarkParker/MIDI_Studio`.
 Baseline: `alpha/v0.2/MIDIStudioUI.js`.
@@ -13,7 +13,7 @@ Baseline: `alpha/v0.2/MIDIStudioUI.js`.
 Add six controls and one button. Keep the existing layout, visual language and
 interaction model — this is not a redesign.
 
-The DSP side is a separate task ([`04_DSP_SPEC.md`](04_DSP_SPEC.md)). Both
+The DSP side is a separate task ([`04_DSP_SPEC.md`](04_DSP_SPEC_drift-seed.md)). Both
 sessions bind against the parameter table in §2 and nothing else. Neither session
 needs the other to be finished: at Drift 0 the new controls simply do nothing, so
 the UI can ship against the v0.2 DSP and stay correct.
@@ -121,7 +121,7 @@ The v0.2 file already gets most of this right. Do not regress it.
 | Controls paint immediately with their default; no hardcoded numbers in markup | ✅ keep |
 
 Three things to **fix** while the file is open (see
-[`03_PLATFORM_NOTES.md#3`](03_PLATFORM_NOTES.md)):
+[`03_PLATFORM_NOTES.md#3`](../03_PLATFORM_NOTES.md)):
 
 1. Move `export default function createPatchView` to be the **first declaration**
    in the file, before the classes. Function declarations hoist, so this is safe;

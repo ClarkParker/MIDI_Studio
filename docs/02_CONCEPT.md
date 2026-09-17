@@ -1,184 +1,176 @@
-# MIDI Studio v0.3 — Concept
+# MIDI Studio — Concept
 
-**One direction, as asked for: stop shipping results, start shipping a performer.**
+**Status: draft v1, for discussion.** Written to answer the one question the
+maker put to the beta group: *what would make this more useful for composing?*
 
-> v0.2 has 40 fixed results.
-> v0.3 should have 40 *starting points* and a dice with a memory.
+Facts about the alpha come from [`01_ALPHA_ANALYSIS.md`](01_ALPHA_ANALYSIS.md).
+Everything marked *assumed* is ours and needs the maker's confirmation (§11).
 
 ---
 
-## 1. The diagnosis in one line
+## 1. What it is today
 
-The patch does not feel fixed because it has too few compositions. It feels fixed
-because **the rhythm never moves**: 32 of its 40 loops are one bar of rhythm
-repeated four times, 24 of 40 replay an identical velocity sequence every bar,
-and every onset sits exactly on a sixteenth. See
-[`01_ALPHA_ANALYSIS.md`](01_ALPHA_ANALYSIS.md) for the measurements.
+MIDI Studio v0.2 is a MIDI-only plugin — it makes no sound of its own — that
+plays authored four-bar loops in sync with the host. Ten "instruments", which
+are really ten **roles** (bass register, chord figuration, lead line, drum
+groove…), each with four "ideas". Pick a role, pick an idea, set the key, press
+play in the DAW, route the MIDI to a sound.
 
-So the answer to *"better rhythm or harmony?"* is **rhythm, clearly**. The
-harmony is already fine — the stored degrees trace real progressions and move
-every bar. It is the rhythmic mask on top that is frozen.
+Measured:
 
-## 2. The core move
+- 40 loops in total — that is the plugin's entire output space
+- rhythm is frozen: 32 of 40 loops are one bar repeated four times, every note on
+  the sixteenth grid, velocities replayed verbatim
+- the harmony does move — and for a given idea it is the **same progression
+  across all ten roles**. The four ideas are, in effect, four complete
+  arrangements cut into ten single parts
+- one instance = one role = one MIDI channel; instances know nothing of each other
+- `midiIn` is unused: nothing the user plays reaches the engine
 
-Today a "composition" is one welded row in a table: **when**, **what** and **how
-loud** are baked together and cannot be touched independently. Nothing in the
-engine can decide anything.
+So v0.2 is a **disassembled band**: ten musicians who each know four pieces,
+cannot hear each other, take no direction, and play their four bars until muted.
 
-The concept is to split that into two layers:
+## 2. What "too fixed" actually means
 
-```
-   MATERIAL  (keep!)          PERFORMANCE  (new)
-   the 40 authored loops  ->  a seeded per-bar re-interpretation  ->  MIDI out
-   = "what to play"           = "how to play it this time round"
-```
+Not "it repeats" — every loop repeats. The problem is **ownership**.
 
-The 40 authored loops are good content and stay exactly as they are. They stop
-being the output and become the **input** to a performer that decides, for each
-bar, which notes survive, which shift, which are added, and how hard they are
-played.
+The plugin has 40 outputs and every user gets the same 40. Whatever you make
+with it sounds like one of them, in your key. Material picked from a menu is not
+yours, and for a composing tool that is the whole game.
 
-## 3. The pivot: Seed + Drift
+Material becomes the user's when:
 
-Two parameters carry the whole idea.
+1. the **harmony** is theirs — their chords, not one of four progressions
+2. the **character** is theirs — they shaped how it is played
+3. the parts **fit together** by design, not by luck
+4. it **develops** over the length of a song
 
-**Drift (0-100%)** — how far a bar may depart from the stored cell.
+v0.2 offers (1) only as key transposition, (2) nothing, (3) hidden and fragile —
+set two instances to different ideas and two progressions collide without
+warning — and (4) nothing.
 
-- At **Drift = 0 the output is bit-identical to v0.2.** Nothing anyone has
-  already made breaks, and there is no "new version sounds different" problem.
-- At 20-40% it is the same piece, played by a human who does not repeat
-  themselves.
-- At 100% the material is a suggestion.
+## 3. Goal
 
-**Seed (0-999)** — reproducible randomness.
+**From loop player to accompanist.**
 
-This one is not optional. *Surprise without recall is just noise.* A generator
-that cannot reproduce the take it just played is not a composing tool — the user
-hears something great, touches a knob, and it is gone forever. With a seed, every
-result has an address. "Seed 412, Drift 35%" is a piece of music you can write
-down, send to someone, and get back.
+MIDI Studio becomes a small band that plays *the user's* harmony in a chosen
+style and takes simple direction. The output is the user's; the plugin
+contributes the playing.
 
-The UI pairing is a **Roll** button next to a seed readout: press until something
-is good, then stop. That is the entire interaction, and it is the thing v0.2 is
-missing.
+In one sentence for the maker: *the parts should follow the chords the user
+gives them.*
 
-## 4. Why this also solves the content problem
+## 4. Who it is for
 
-The randomness must be a **pure function of position, not a running state**:
+*Assumed.*
 
-```
-    value = hash(seed, absoluteBar, step, layer)     // no state, no accumulator
-```
+**Primary:** a producer or musician working in a DAW who can play or program a
+chord progression and wants a band to play it — a starting point that already
+fits their track. Not a notation composer; not a complete beginner.
 
-That has one consequence that changes the product: **bar 5 is not bar 1**. The
-same 64-step table, read at different absolute bar numbers, produces a different
-performance every time — deterministically. A **Phrase Length** control
-(4 / 8 / 16 / 32 bars) then turns the existing 40 loops into 16- and 32-bar
-phrases that develop and *then* repeat.
+**Secondary:** someone who cannot supply chords. For them the stored
+progressions stay as built-in fallbacks — which is exactly what v0.2 is today.
+Nothing is taken away from anyone.
 
-That is variation without any new data. It matters, because the current growth
-path is closed: **the four lookup tables are 77% of the DSP source file.** Every
-new composition costs source size linearly and still ships a fixed result. Adding
-presets is the most expensive axis with the smallest return — and there are
-already 8 rhythmic duplicates among the 40.
+## 5. Core idea
 
-Position-based hashing also keeps the engine's best property intact: the host can
-seek anywhere and the engine still produces the correct note for that bar,
-because nothing depends on how it got there. A bounced take equals the live take.
+Separate two things v0.2 welds together:
 
-## 5. What Drift actually does to a bar
-
-Four independent operators, each scaled by Drift, each deciding per note from the
-positional hash:
-
-| Operator | At Drift = 0 | At Drift = 100% |
+| | v0.2 | Concept |
 |---|---|---|
-| **Omit** | every stored note plays | up to ~35% of notes drop out (weakest first) |
-| **Displace** | onsets exactly on the grid | a note may move +-1 sixteenth, never across a beat |
-| **Add** | nothing added | ghost notes / passing tones on empty steps, from the current chord |
-| **Re-voice** | stored octave | a note may jump an octave or take a different chord tone |
+| **Harmony** — which chords | baked into each loop | from the user: chords played or drawn on one MIDI track, sent to every instance |
+| **Style** — how the role plays them | baked into each loop | what the "ideas" become: a playing pattern that works over any chord |
 
-Plus three always-on performance controls that are independent of Drift, because
-they are taste, not risk:
+Consequences:
 
-- **Swing (50-75%)** — delays every second sixteenth. The engine already
-  schedules in fractional PPQ, so this is nearly free.
-- **Humanize (0-100%)** — small timing and velocity jitter. Removes the
-  machine-gun hats without touching the composition.
-- **Accent (0-100%)** — velocity shaped by metric position (downbeat, backbeat,
-  offbeat), replacing the frozen per-note velocities. This alone fixes the
-  `[53, 72]` hat problem in all four grooves.
+- **The user's chord track is the conductor.** Every instance follows the same
+  chords, so the parts fit by construction. No inter-instance communication is
+  needed — the DAW already does the routing.
+- **Change one chord and the whole band follows.** This is the moment that sells
+  it, and the one to demo.
+- **The stored content survives.** The tables hold scale degrees, not pitches,
+  and the engine already resolves degrees against a root. The material can be
+  re-expressed relative to a chord rather than rewritten. Ideas become styles;
+  the four baked-in progressions become the fallback when no chords arrive.
+- **More content becomes cheap and meaningful.** A new style is a playing
+  pattern, not a song. Today a new "composition" costs a 77%-tables source file
+  and still ships a fixed result.
 
-## 6. Answering the four options directly
+## 6. The experience
 
-| The maker asked | Answer |
-|---|---|
-| more control? | **Yes — but six knobs, not sixty.** They must be *performance* controls (Drift, Seed, Swing, Humanize, Density, Accent), not more selectors over fixed content. |
-| more surprising ideas? | **Yes — but only with a seed.** Un-reproducible surprise is unusable in composing. |
-| better rhythm or harmony? | **Rhythm.** By the numbers, the harmony already moves and the rhythm does not. |
-| another direction? | **This is it:** loop player → performer. It subsumes the first three. |
-| more compositions? | **No.** 77% of the source is already tables, 8 of 40 are rhythmic duplicates, and a 41st fixed loop is still fixed. |
+1. One instance per instrument track, as today. Choose a role and a style.
+2. One MIDI track carries the chords — played live or drawn as a clip — and is
+   routed to all instances.
+3. Press play. The band plays your chords in the chosen styles, in sync with the
+   host.
+4. Direct it: thinner in the verse, fuller in the chorus, a different style for
+   the bridge. A few intent controls per role, not many.
+5. When it is right, record the MIDI onto the instrument tracks and keep editing
+   in the DAW. The plugin has done its job.
 
-## 7. What stays untouched
+No chords on the input → the role falls back to its built-in progression,
+exactly as v0.2 behaves now.
 
-Everything that is already right, and there is a lot of it:
+## 7. What it is not
 
-- The six-slot `transportIn` handling, discontinuity detection against the raw
-  previous packet, backwards-jump and forward-seek resets.
-- 32-slot note tracking, same-pitch retrigger handling, per-sample note-off
-  expiry, CC123 on stop. No stuck notes — this must not regress.
-- Parameters 1-10 keep their numbers and meanings. In this kit **the parameter
-  number is the contract**; new controls append at 11+.
-- The 40 authored loops, byte for byte.
-- The UI's shell: `createPatchView` default export, paired connect/disconnect,
-  listener teardown, keyboard access, ARIA roles.
+- **Not a sequencer or piano roll.** Editing happens in the DAW.
+- **Not a sound source.** Pure MIDI stays pure MIDI.
+- **Not an arranger keyboard** with hundreds of styles and auto-intros. A small
+  band, a handful of styles per role, simple direction.
+- **Not a random-idea generator.** Variety comes from the user's harmony and
+  direction, not from dice. Seeded variation may return later as polish *inside*
+  a style; it is not the direction. (An earlier pass proposed exactly that —
+  see `parked/`.)
 
-## 8. Staging
+## 8. The one direction for the maker
 
-Deliberately small first step — this is the "one direction this week" the maker
-asked for.
+He asked for one. **Chord follow.**
 
-**v0.3 — the performer** (the whole concept above)
-Params 11-16: Drift, Seed, Swing, Humanize, Density, Accent. Plus a Roll button
-and a seed readout in the UI. One new engine stage between table lookup and
-`emitNote`. Backwards compatible at Drift = 0.
+In a week, concretely:
 
-**v0.4 — the arranger**
-Lift harmony out of the tables into an explicit chord track (root + quality per
-bar), so Key/Scale stop being a global transpose. Add Phrase Length (4/8/16/32)
-and a Fill control. Introduce *roles* (Bass / Chords / Arp / Lead / Pad / Drums)
-so the instrument selector stops being ten hard-coded special cases.
+- read the notes held on `midiIn`; derive root and quality — major/minor is
+  enough to start
+- play the current style's figuration over that chord instead of the baked-in bar
+- nothing held → use the stored progression as today
 
-**v0.5 — the instrument**
-Make `midiIn` do something: chord-follow (play a chord, the generator follows it),
-keyboard transpose, and trigger/latch. This is what turns it from a generator you
-listen to into one you play. Plus a capture path so a good take can leave the
-plugin.
+Backward compatible, uses an endpoint that already exists, and the dev kit's
+`03_MidiChord` example already shows held-note handling in Amorph. Everything
+else in this concept builds on it, and nothing else is needed before it.
 
-## 9. Open questions for the maker
+## 9. What comes after — in order
 
-1. **Is Drift = 0 backwards compatibility a requirement?** We think yes, and the
-   design assumes it. It costs nothing and it protects existing projects.
-2. **How many parameters is too many?** We propose six new ones. If the ceiling
-   is lower, Drift + Seed + Swing alone already deliver most of the effect.
-3. **Should the seed be per-instrument or global?** Global is simpler and keeps
-   multiple instances in sync; per-instrument lets one part be re-rolled without
-   disturbing the others. We lean global for v0.3.
-4. **Is a MIDI-input direction (v0.5) wanted at all**, or should MIDI Studio stay
-   a pure generator? This changes the product category, so it is the maker's call,
-   not ours.
+1. **Chord follow** (§8).
+2. **Direction.** Two or three intent controls per role: density or energy,
+   register, feel (swing, humanise). This is also where the frozen-rhythm finding
+   gets fixed — as part of *how a style plays*, not as a separate feature.
+3. **Form helpers.** A fill when the chord track hits a section boundary,
+   stop/restart behaviour, and style phrases of 2–4 bars with real rhythmic
+   development instead of one bar repeated.
+4. **More styles per role**, now that a style is cheap to author.
 
-## 10. Risks we can see
+## 10. Implications for the two workstreams
 
-- **Drift must never break the note bookkeeping.** Displaced and added notes go
-  through the same 32-slot allocator and the same expiry path; nothing may bypass
-  `emitNote`. Stuck notes would be a far worse regression than boredom.
-- **Displacement across a step boundary needs care**, because the scheduler fires
-  on integer step transitions. A note moved *later* must be scheduled by the step
-  it lands on, not the step it came from.
-- **32 voices may not be enough** once Add is at full Drift on a 5-voice Strings
-  pattern. The slot count should be re-checked, not assumed.
-- **The hash must be cheap.** It runs per note per step inside the audio loop.
-  Integer-only, no division, no floats.
-- **Density and Drift overlap.** They may need to be one control. To be settled
-  when the DSP prototype exists, not before.
+Not specifications — only what each side has to be true to.
+
+**DSP.** The engine's job changes from *"look up bar N"* to *"play style S over
+chord C"*. Held-note tracking lives in the `midiIn` handler (Amorph rule: that
+handler owns held-note bookkeeping); chord → root and quality; style content
+resolved against the current chord instead of the key. Transport handling and
+note bookkeeping stay exactly as they are — they are the good part of v0.2.
+
+**UI.** Show the chord the engine is following right now — this feedback loop is
+what makes it feel alive — plus role and style choice and the few direction
+controls. The chord readout replaces today's static progression hint.
+
+## 11. Assumptions and open questions for the maker
+
+1. **Target user.** §4 is assumed. Is the primary user someone who supplies
+   chords, or someone who wants a result without playing anything?
+2. **Routing.** One MIDI track feeding several plugin instances is easy in some
+   DAWs and clumsy in others. Is one-role-per-instance the intended model, or is a
+   single-instance "whole band" mode (multi-channel output) wanted eventually?
+3. **Chord vocabulary.** Root plus major/minor first, or are sevenths and
+   suspensions expected from day one?
+4. **The four ideas.** With harmony external, some roles' ideas collapse —
+   Guitar's and Strings' four ideas differ essentially only in progression. Reduce
+   them, or re-author as distinct styles?

@@ -1,7 +1,12 @@
 # Platform notes — what Amorph lets a MIDI plugin do
 
-Constraints that actually shape the v0.3 design, plus where v0.2 already deviates
+Constraints that shape any successor to v0.2, plus where v0.2 already deviates
 from the current upstream rules.
+
+> §1 was written for the parked Drift/Seed design (`parked/`). Its three
+> findings still hold — stateless randomness, transport slot 5 = `barStart`,
+> integer-only hot paths — but they are no longer the architecture's centre.
+> §2–§5 apply unchanged to the current concept.
 
 Sources, in precedence order (per the DEV kit's `CLAUDE.md` rule 9 — **upstream
 wins over kit captures**):

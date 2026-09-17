@@ -1,7 +1,7 @@
 # v0.3 DSP spec — the performer stage
 
 Handover document for the DSP session. Read
-[`02_CONCEPT.md`](02_CONCEPT.md) and [`03_PLATFORM_NOTES.md`](03_PLATFORM_NOTES.md)
+[`02_CONCEPT.md`](02_CONCEPT_drift-seed.md) and [`03_PLATFORM_NOTES.md`](../03_PLATFORM_NOTES.md)
 first. **Do not start implementing before §7 (verification) has been answered** —
 one language question blocks the design.
 
@@ -53,13 +53,13 @@ is not negotiable — it is what protects existing projects and makes the change
 safe to ship.
 
 Do **not** add these to the UI in this session; the UI is a separate task with
-its own spec ([`05_UI_SPEC.md`](05_UI_SPEC.md)). Both sessions bind against the
+its own spec ([`05_UI_SPEC.md`](05_UI_SPEC_drift-seed.md)). Both sessions bind against the
 table above.
 
 ## 3. The positional hash
 
 The single most important design decision. See
-[`03_PLATFORM_NOTES.md#11`](03_PLATFORM_NOTES.md) for why `std::random::RNG` is
+[`03_PLATFORM_NOTES.md#11`](../03_PLATFORM_NOTES.md) for why `std::random::RNG` is
 not usable here.
 
 **Contract:**
@@ -95,7 +95,7 @@ within the loop. The performer needs the **absolute** bar index so that bar 5 is
 distinguishable from bar 1.
 
 Take it from transport slot 5 (`barStart`, the PPQ position of the current bar's
-start — see [`03_PLATFORM_NOTES.md#12`](03_PLATFORM_NOTES.md)):
+start — see [`03_PLATFORM_NOTES.md#12`](../03_PLATFORM_NOTES.md)):
 
 ```
     barLengthPpq  = numerator * 4 / denominator        // already implemented as getBarLengthPpq()
@@ -199,7 +199,7 @@ At 100% the stored velocities are replaced entirely. This is what fixes the
 Drift allows. At Drift = 0, Density must still do nothing — Drift is the master
 switch for anything that changes the note set. Revisit whether Density and Drift
 should merge into one control once both exist and can be played
-([`02_CONCEPT.md#10`](02_CONCEPT.md)).
+([`02_CONCEPT.md#10`](02_CONCEPT_drift-seed.md)).
 
 ### 5.6 Order of operations
 
