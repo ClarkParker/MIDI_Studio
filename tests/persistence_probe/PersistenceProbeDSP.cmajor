@@ -1,0 +1,121 @@
+// Persistence Probe — does the patch UI run at plugin load, and what reaches the DSP when?
+// Test companion for MIDI Studio concept v2 (docs/02_CONCEPT.md §9, §11). Not a musical patch.
+processor PersistenceProbe [[ main ]]
+{
+    input  event std::midi::Message midiIn;
+    output event std::midi::Message midiOut;
+
+    input event float param1 [[ name: "Param Note", min: 0, max: 127, init: 60, step: 1 ]];
+
+    output event float uptimeOut;       // seconds since this DSP instance started
+    output event float paramValueOut;   // current param1
+    output event float paramTimeOut;    // uptime when param1 first differed from its init (-1 = never)
+    output event float helloCountOut;   // number of UI "hello" messages received (CC 118, channel 16)
+    output event float helloTimeOut;    // uptime of the first hello (-1 = never)
+    output event float blobValueOut;    // last blob value received (CC 119, channel 16; -1 = none)
+    output event float blobTimeOut;     // uptime of the first blob (-1 = never)
+    output event float blobCountOut;    // number of blob messages received
+
+    int   paramNote = 60;
+    float paramTime = -1.0f;
+    int   helloCount = 0;
+    float helloTime = -1.0f;
+    int   blobValue = -1;
+    float blobTime = -1.0f;
+    int   blobCount = 0;
+
+    int64 sampleCount = 0;
+    int   secondTick = 0;
+    int   noteTick = 0;
+    int   soundingNote = -1;
+    int   soundingBlobNote = -1;
+
+    float uptimeSeconds() { return float (float64 (sampleCount) / processor.frequency); }
+
+    event param1 (float v)
+    {
+        paramNote = clamp (int (v), 0, 127);
+        if (paramTime < 0.0f && paramNote != 60)
+            paramTime = uptimeSeconds();
+    }
+
+    // The UI talks to the DSP through injected MIDI on channel 16, because MIDI is
+    // guaranteed not to be a host-persisted parameter and cannot fake a result.
+    // CC 118 = "a UI connected", CC 119 = "here is the stored-state blob value".
+    event midiIn (std::midi::Message message)
+    {
+        if (! message.isController()) return;
+        if (message.getChannel0to15() != 15) return;
+
+        if (message.isControllerNumber (118))
+        {
+            helloCount += 1;
+            if (helloTime < 0.0f) helloTime = uptimeSeconds();
+        }
+        else if (message.isControllerNumber (119))
+        {
+            blobValue = message.getControllerValue();
+            blobCount += 1;
+            if (blobTime < 0.0f) blobTime = uptimeSeconds();
+        }
+    }
+
+    void report()
+    {
+        uptimeOut     <- uptimeSeconds();
+        paramValueOut <- float (paramNote);
+        paramTimeOut  <- paramTime;
+        helloCountOut <- float (helloCount);
+        helloTimeOut  <- helloTime;
+        blobValueOut  <- float (blobValue);
+        blobTimeOut   <- blobTime;
+        blobCountOut  <- float (blobCount);
+    }
+
+    void main()
+    {
+        int samplesPerSecond = max (1, int (processor.frequency + 0.5));
+
+        loop
+        {
+            sampleCount += 1;
+
+            secondTick += 1;
+            if (secondTick >= samplesPerSecond)
+            {
+                secondTick = 0;
+                report();
+            }
+
+            // Audible witness that needs neither transport nor an open window:
+            // every two seconds a half-second note on channel 1 at the parameter's
+            // pitch and, once a blob has arrived, on channel 2 at 36 + blob value.
+            if (noteTick == 0)
+            {
+                soundingNote = paramNote;
+                midiOut <- std::midi::createMessage (0x90, soundingNote, 100);
+
+                if (blobValue >= 0)
+                {
+                    soundingBlobNote = clamp (36 + blobValue, 0, 127);
+                    midiOut <- std::midi::createMessage (0x91, soundingBlobNote, 100);
+                }
+            }
+            else if (noteTick == samplesPerSecond / 2)
+            {
+                if (soundingNote >= 0)
+                    midiOut <- std::midi::createMessage (0x80, soundingNote, 0);
+                if (soundingBlobNote >= 0)
+                    midiOut <- std::midi::createMessage (0x81, soundingBlobNote, 0);
+                soundingNote = -1;
+                soundingBlobNote = -1;
+            }
+
+            noteTick += 1;
+            if (noteTick >= samplesPerSecond * 2)
+                noteTick = 0;
+
+            advance();
+        }
+    }
+}
