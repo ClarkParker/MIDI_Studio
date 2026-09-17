@@ -8,12 +8,12 @@ The maker shipped an alpha (v0.2) and asked the group one question:
 > "it has a few compositions and variations, but still feels too fixed. i'd like
 > it to become more useful for composing. what would change?"
 
-**Our answer, in one line:** v0.2 is a disassembled band — ten roles that were
-authored as one arrangement but cannot hear each other or take direction. The
-direction is not more loops and not more randomness; it is **chord follow**: the
-parts play the chords the user gives them, so the output becomes the user's.
+**Our answer, in one line:** v0.2 is a disassembled band playing four baked-in
+progressions. The foundation should be an **editable block progression** the
+user owns — filled by transparent, corpus-grounded suggestions — played by one
+instance as a band with roles on separate MIDI channels.
 
-Concept: [`docs/02_CONCEPT.md`](docs/02_CONCEPT.md) (draft v1, under discussion).
+Concept: [`docs/02_CONCEPT.md`](docs/02_CONCEPT.md) (draft v2). Market analysis: [`docs/07_MARKET_ANALYSIS.md`](docs/07_MARKET_ANALYSIS.md).
 
 ---
 
@@ -23,7 +23,7 @@ Concept: [`docs/02_CONCEPT.md`](docs/02_CONCEPT.md) (draft v1, under discussion)
 |---|---|
 | Alpha v0.2 analysis | done |
 | Market and technology analysis | v1 — four sourced research buckets + synthesis |
-| Concept | draft v1 — to be revised against the market analysis |
+| Concept | draft v2 — block progression as foundation, one instance = the band |
 | DSP implementation | not started — follows the concept |
 | UI implementation | not started — follows the concept |
 

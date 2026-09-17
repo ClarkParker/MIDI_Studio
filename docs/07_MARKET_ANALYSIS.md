@@ -184,6 +184,12 @@ Cross-bucket, the same things recur regardless of price:
 
 ## 8. What we can adapt — ranked, with licence position
 
+In Amorph, "adapt" has one meaning: re-express as constant arrays and rules
+inside the patch's two source texts, `dsp.cmajor` and `index.js`. There is no
+data file, no style folder, nothing loaded at runtime — content *is* source and
+costs source size and compile time, which is why this list favours rule engines
+over libraries.
+
 Ideas, mechanisms and rule *shapes* are not copyrightable and can be
 re-implemented regardless of source licence. Concrete GPL *data* (grooves,
 style files, tables) must be re-authored, not copied. MIT/BSD/Apache material
@@ -216,8 +222,10 @@ usable only offline, as a source to distil tables from.
    complaint is universal; the algorithms are cheap.
 3. **The open generator.** Amorph's platform promise is that the user — or an AI
    in the host — can read and rewrite the plugin. Styles, rule tables and
-   progression weights as readable, editable data turn "make me a bossa style"
-   into something the plugin can actually do. The nearest analogues (Ableton
+   progression weights are constant arrays in the patch's source; "make me a
+   bossa style" means the host's AI writes a new table and recompiles
+   (`edit_lines → apply_draft`) — a regenerating instrument, not a preset
+   browser. The nearest analogues (Ableton
    Stacks JSON banks, Chordz text templates, MMA grooves, Ripchord being open
    source) are all far from "describe a style, get a style". **No competitor
    can copy this; it is structural to the host.**
@@ -246,6 +254,8 @@ Deltas to [`02_CONCEPT.md`](02_CONCEPT.md), to be folded into v2 of it:
 - **Positioning:** offline, in-DAW, transparent about *why*, editable — against
   cloud black boxes and DAW lock-in.
 - **Do not compete on** song generation, recorded realism, or audio detection.
+- **Content stays small.** Styles and tables are source in a two-file monolith;
+  uniqueness comes from the engine, not from library size.
 
 ## 11. Suggested reading order for the maker
 
