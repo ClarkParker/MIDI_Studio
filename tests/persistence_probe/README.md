@@ -20,9 +20,14 @@ The one rule that matters: **after reloading the project, press Play/Stop in
 the DAW before opening the window.** The DSP counts play starts, so the probe
 can prove it was already running when the window opened — no clock needed.
 
-Full sequence: open the window (step 1 is recorded automatically) → close it,
-save the project, quit the DAW → start the DAW, open the project → Play ~3 s,
-Stop → open the window → read the box.
+Sequence: open the window (step 1 is recorded automatically) → quick check:
+close it, Play ~3 s, Stop, open it, click *I pressed Play/Stop before opening*
+→ the real test: close it, save the project, quit the DAW, start the DAW, open
+the project, Play ~3 s, Stop, open the window, click the button → read the box.
+
+The number of UI connects is kept in `param1` itself (60 + n), because
+parameters are the one thing proven to survive a reload; if stored state comes
+back empty after that, the probe says "stored state LOST" explicitly.
 
 ## How it works
 
