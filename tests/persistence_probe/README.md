@@ -16,14 +16,18 @@ You do not need to watch anything. Open the window and follow the green
 project reload by itself, and ends with a plain-language **CONCLUSION**. Then
 click *Copy log* and paste the result.
 
-The one rule that matters: **after reloading the project, press Play/Stop in
-the DAW before opening the window.** The DSP counts play starts, so the probe
-can prove it was already running when the window opened — no clock needed.
-
 Sequence: open the window (step 1 is recorded automatically) → quick check:
-close it, Play ~3 s, Stop, open it, click *I pressed Play/Stop before opening*
-→ the real test: close it, save the project, quit the DAW, start the DAW, open
-the project, Play ~3 s, Stop, open the window, click the button → read the box.
+close it for at least 20 s, open it → the real test: close it, save the
+project, quit the DAW, start the DAW, open the project, wait 20 s, open the
+window → read the box.
+
+The quick check needs no Play: the UI writes a checkpoint (DSP clock + wall
+clock) to stored state every 2 s, so on reopening it can compare how long the
+window was closed with how far the DSP clock advanced. Clock advanced ≈ closed
+time → the DSP ran; ≈ 0 → the host did not process the plugin (in Cubase:
+Preferences → VST → Plug-ins → "Suspend VST 3 plug-in processing when no audio
+signals are received"); clock went backwards → the DSP was restarted. A
+watchdog also flags gaps in DSP reports while the window is open.
 
 The number of UI connects is kept in `param1` itself (60 + n), because
 parameters are the one thing proven to survive a reload; if stored state comes
